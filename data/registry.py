@@ -1,6 +1,7 @@
 from typing import Callable, Dict, Type
 from torch.utils.data import Dataset
 
+
 DATASET_REGISTRY: Dict[str, Dict] = {}
 
 def register_dataset(name: str):
@@ -29,3 +30,18 @@ def register_stage_helper(name: str):
     return decorator
 
 
+UNIVERSE_REGISTRY: Dict[str, Callable] = {}
+
+
+def register_universe(name: str):
+    """
+    Register a stock universe (e.g. sp500, nasdaq100).
+    """
+    def decorator(fn: Callable[[], list[str]]):
+        if name in UNIVERSE_REGISTRY:
+            raise KeyError(f"Universe {name} already registered")
+
+        UNIVERSE_REGISTRY[name] = fn
+        return fn
+
+    return decorator

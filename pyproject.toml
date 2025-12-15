@@ -1,5 +1,5 @@
 [project]
-name = "deeptrade"
+name = "deepxxZ"
 version = "0.1.0"
 description = ""
 requires-python = ">=3.9"
@@ -13,6 +13,7 @@ dependencies = [
     "yfinance>=0.2.0",
     "matplotlib>=3.5.0",
     "seaborn>=0.12.0",
+    "lxml>=6.0.2",
 ]
 
 [dependency-groups]
