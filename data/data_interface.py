@@ -5,7 +5,10 @@ import torch
 import lightning as pl
 from typing import Optional
 from torch.utils.data import DataLoader, Dataset
-from .registry import DATASET_REGISTRY
+from registry import DATASET_REGISTRY
+
+# register dataset
+from ohlcv_dataset import OHLCVDataset, OHLCV_dataset_stage_generator
 
 
 class DInterface(pl.LightningDataModule):
@@ -88,17 +91,32 @@ if __name__ == "__main__":
     # Example usage
     dataset_config = {
         "datasetname": "OHLCV",
-        "data_path": "data/AAPL.csv",
+        "data_path": "data/sp500_3stocks",
         "features": ["open", "high", "low", "close", "volume"],
         "sliding_window": 60,
-        "normalization": "Zscore",
         "k": 1,
         "train_ratio": 0.8,
+        "val_ratio": 0.1,
+        "indicator_bundle": {
+            "use": True,
+            "indicators": {
+                "sma": [5, 10],
+                "rsi": [14],
+                "ema": [10],
+                "macd": [(12, 26, 9)],
+                "bbands": [20],
+                "atr": [14],
+            }
+        }
     }
     
     dm = DInterface(batch_size=32, dataset_config=dataset_config)
     dm.setup()
     train_loader = dm.train_dataloader()
     print(f"Number of batches: {len(train_loader)}")
+    for batch in train_loader:
+        x, y = batch
+        print(f"Batch x shape: {x.shape}, y shape: {y.shape}")
+        break
 
 
