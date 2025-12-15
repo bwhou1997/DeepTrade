@@ -33,6 +33,16 @@ DeepTrade/
 
 ## Quick Start
 
+### UV Setup
+
+```bash
+git clone
+cd DeepTrade
+uv sync
+source .venv/bin/activate
+```
+
+
 ### Download Stock Data
 
 ```python
