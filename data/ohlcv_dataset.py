@@ -12,6 +12,23 @@ from .registry import register_dataset, register_stage_helper
 from .indicator import IndicatorBundle
 
 
+def normalizer(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Z-score normalization for all features.
+    Assumes df is time-sorted.
+    """
+
+    eps = 1e-8
+    norm_df = pd.DataFrame(index=df.index)
+
+    for col in df.columns:
+        x = df[col].values.astype(np.float32)
+        mean = x.mean()
+        std = x.std()
+        norm_df[col] = (x - mean) / (std + eps)
+
+    return norm_df
+
 def load_csv_list(data_path) -> List[str]:
     """
     data_path can be:
@@ -65,6 +82,19 @@ class OHLCVDataset(Dataset):
         for stock_id, csv_path in enumerate(csv_files):
             self._load_single_stock(csv_path, stock_id)
 
+        # print statistic of labels (up, down, flat)
+        total_counts = np.zeros(3, dtype=np.int64)
+        for labels in self.stock_labels:
+            for c in range(3):
+                total_counts[c] += np.sum(labels == c)
+        total = total_counts.sum()
+        print(
+            f"[OHLCVDataset] Label distribution: "
+            f"DOWN={total_counts[0]} ({total_counts[0]/total:.2%}), "
+            f"FLAT={total_counts[1]} ({total_counts[1]/total:.2%}), "
+            f"UP={total_counts[2]} ({total_counts[2]/total:.2%})"
+        )
+
         print(
             f"[OHLCVDataset] Loaded {len(csv_files)} stocks, "
             f"{len(self.index_map)} total samples"
@@ -92,6 +122,7 @@ class OHLCVDataset(Dataset):
 
         # get rid of data and transform to numpy
         df = df.drop(columns=["date"])
+        df = normalizer(df)
         data = df.values.astype(np.float32)
 
         # ---------- label generation ----------
@@ -181,11 +212,12 @@ def OHLCV_dataset_stage_generator(
 
 if __name__ == "__main__":
     # Test dataset
+    import matplotlib.pyplot as plt
     config = {
         "data_path": "./data/sp500_1h",
         "features": ["open", "high", "low", "close", "volume"],
         "sliding_window": 60,
-        "k": 1,
+        "k": 5,
         "train_ratio": 0.8,
         "valid_ratio": 0.1,
         "indicator_bundle": {
@@ -195,7 +227,7 @@ if __name__ == "__main__":
                 "rsi": [14],
                 "ema": [10],
                 "macd": [(12, 26, 9)],
-                "bbands": [20],
+                # "bbands": [20],
                 "atr": [14],
             }
         }

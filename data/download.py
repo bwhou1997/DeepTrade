@@ -305,13 +305,13 @@ def YahooFinanceDownloader(
 
 if __name__ == "__main__":
 
-    INTERVAL = "1h"
-    START_DATE = "2024-01-01"
-    END_DATE = "2025-06-01"
-    SAVE_DIR = "data/sp500_1h"
+    INTERVAL = "1d"
+    START_DATE = "2010-01-01"
+    END_DATE = "2020-01-01"
+    SAVE_DIR = "data/msft"
     MAX_STOCKS = None
 
-    SYMBOLS: str | List[str] = "sp500" 
+    SYMBOLS: str | List[str] = ['MSFT'] 
     # SYMBOLS = "nasdaq100", "sp500"
     # SYMBOLS = ["AAPL", "MSFT",...]
 

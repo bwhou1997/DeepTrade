@@ -12,7 +12,8 @@ def register_dataset(name: str):
         dataset_cls: Type[Dataset]
     ):
         if name in DATASET_REGISTRY:
-            raise KeyError(f"Dataset {name} already registered")
+            # raise KeyError(f"Dataset {name} already registered")
+            pass
 
         DATASET_REGISTRY[name] = {
             "dataset_cls": dataset_cls,
@@ -24,7 +25,8 @@ def register_dataset(name: str):
 def register_stage_helper(name: str):
     def decorator(func: Callable):
         if name not in DATASET_REGISTRY:
-            raise KeyError(f"Dataset {name} must be registered first")
+            # raise KeyError(f"Dataset {name} must be registered first")
+            pass
         DATASET_REGISTRY[name]["stage_helper"] = func
         return func
     return decorator
@@ -39,7 +41,8 @@ def register_universe(name: str):
     """
     def decorator(fn: Callable[[], list[str]]):
         if name in UNIVERSE_REGISTRY:
-            raise KeyError(f"Universe {name} already registered")
+            # raise KeyError(f"Universe {name} already registered")
+            pass
 
         UNIVERSE_REGISTRY[name] = fn
         return fn

@@ -7,15 +7,14 @@ import lightning as pl
 from lightning.pytorch.callbacks import ModelCheckpoint
 
 
-# Dataset configuration
 dataset_config = {
     "datasetname": "OHLCV",
-    "data_path": "data/data/sp500_1h",
+    "data_path": "./data/data/msft",
     "features": ["open", "high", "low", "close", "volume"],
     "sliding_window": 60,
-    "k": 1,
+    "k": 5,
     "train_ratio": 0.8,
-    "val_ratio": 0.1,
+    "valid_ratio": 0.1,
     "indicator_bundle": {
         "use": True,
         "indicators": {
@@ -23,7 +22,7 @@ dataset_config = {
             "rsi": [14],
             "ema": [10],
             "macd": [(12, 26, 9)],
-            "bbands": [20],
+            # "bbands": [20],
             "atr": [14],
         }
     }
@@ -43,18 +42,18 @@ dataset_config = {
 # }
 model_config = {
     "modelname": "transformer_encoder",
-    "d_input": 15,
-    "d_model": 128,
-    "nhead": 8,
-    "num_layers": 3,
-    "dim_feedforward": 256,
-    "dropout": 0.1,
+    "d_input": 12,
+    "d_model": 32,
+    "nhead": 2,
+    "num_layers": 1,
+    "dim_feedforward": 64,
+    "dropout": 0.3,
     "num_classes": 3,
-    "lr": 5e-4,
+    "lr": 1e-3,
 }
 
 # Setup data and model
-dm = DInterface(batch_size=1280, dataset_config=dataset_config)
+dm = DInterface(batch_size=256, dataset_config=dataset_config)
 model = MInterface(model_config)
 
 # Checkpoint callback
@@ -68,7 +67,7 @@ checkpoint_callback = ModelCheckpoint(
 
 # Trainer
 trainer = pl.Trainer(
-    max_epochs=50,
+    max_epochs=100,
     accelerator="auto",
     callbacks=[checkpoint_callback],
     log_every_n_steps=1,
