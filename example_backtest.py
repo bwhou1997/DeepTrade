@@ -1,63 +1,93 @@
 """
-Example: Backtesting a trained model
+Example: Backtesting a trained Lightning model
 """
+import os
 import torch
-from backtesting import BacktestEngine, MLStrategy
+
+from backtesting import BacktestEngine
+from backtesting.strategy import MLStrategy
 from model import MInterface
 
-# Load trained model (example)
-# model_config = {
-#     "modelname": "lstm",
-#     "d_input": 5,
-#     "hidden_size": 64,
-#     "num_layers": 2,
-#     "num_classes": 3,
-#     "lr": 1e-3,
-# }
-# model = MInterface(model_config)
-# model.load_state_dict(torch.load("checkpoints/best_model.ckpt"))
 
-# For demonstration, create a dummy model
-# In practice, load your trained model here
-print("Note: Load your trained model here")
-print("Example: model.load_state_dict(torch.load('checkpoints/best_model.ckpt'))")
+# ============================================================
+# 1. Model config (MUST match training)
+# ============================================================
+model_config = {
+    "modelname": "transformer_encoder",
+    "d_input": 5,
+    "d_model": 32,
+    "nhead": 2,
+    "num_layers": 1,
+    "dim_feedforward": 64,
+    "dropout": 0.3,
+    "num_classes": 3,
+    "lr": 1e-3,
+}
 
-# Setup backtest engine
+# ============================================================
+# 2. Locate Lightning checkpoint
+# ============================================================
+CKPT_DIR = "lightning_logs/best_msft/checkpoints"
+
+ckpt_files = [f for f in os.listdir(CKPT_DIR) if f.endswith(".ckpt")]
+if not ckpt_files:
+    raise FileNotFoundError(f"No checkpoint found in {CKPT_DIR}")
+
+ckpt_path = os.path.join(CKPT_DIR, sorted(ckpt_files)[-1])
+print(f"[INFO] Loading checkpoint: {ckpt_path}")
+
+# ============================================================
+# 3. Build model via factory
+# ============================================================
+model = MInterface(model_config)
+
+# ============================================================
+# 4. Load Lightning checkpoint (state_dict only)
+# ============================================================
+ckpt = torch.load(ckpt_path, map_location="cpu")
+
+# Lightning checkpoints always store weights here
+model.load_state_dict(ckpt["state_dict"])
+model.eval()
+
+# ============================================================
+# 5. Setup backtest engine
+# ============================================================
 engine = BacktestEngine(
-    data_path="data/AAPL.csv",
+    data_path="./data/data/msft/MSFT.csv",
     initial_cash=10000,
     commission=0.001,
-    fromdate="2020-01-01",
-    todate="2023-12-31"
+    fromdate="2024-01-01",
+    todate="2025-12-01",
 )
 
-# Create strategy with model
-# strategy = MLStrategy(
-#     model=model,
-#     lookback=60,
-#     size=1,
-#     threshold=0.6  # Only trade if confidence > 60%
-# )
+# ============================================================
+# 6. Add ML strategy
+# ============================================================
+engine.add_strategy(
+    MLStrategy,
+    model=model,
+    lookback=60,     # MUST match sliding_window
+    hold_period=5,   # MUST match k
+    size=25,
+    threshold=0.0,   # optional
+)
 
-# For demonstration, use SimpleMAStrategy instead
-from backtesting.strategy import SimpleMAStrategy
-strategy = SimpleMAStrategy(fast_period=10, slow_period=30)
-
-# Add strategy and run
-engine.add_strategy(strategy)
+# ============================================================
+# 7. Run backtest
+# ============================================================
 results = engine.run()
 
-# Print results
-print("\n" + "="*50)
+print("\n" + "=" * 50)
 print("BACKTEST RESULTS")
-print("="*50)
-for key, value in results.items():
-    if isinstance(value, float):
-        print(f"{key}: {value:.4f}")
+print("=" * 50)
+for k, v in results.items():
+    if isinstance(v, float):
+        print(f"{k}: {v:.4f}")
     else:
-        print(f"{key}: {value}")
+        print(f"{k}: {v}")
 
-# Plot results
+# ============================================================
+# 8. Plot
+# ============================================================
 engine.plot(save_path="backtest_results.png")
-
-

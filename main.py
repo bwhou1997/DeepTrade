@@ -16,13 +16,12 @@ dataset_config = {
     "train_ratio": 0.8,
     "valid_ratio": 0.1,
     "indicator_bundle": {
-        "use": True,
+        "use": False,
         "indicators": {
-            "sma": [5, 10],
+            "sma": [5, 10, 20],
             "rsi": [14],
             "ema": [10],
             "macd": [(12, 26, 9)],
-            # "bbands": [20],
             "atr": [14],
         }
     }
@@ -31,7 +30,7 @@ dataset_config = {
 # Model configuration
 # model_config = {
 #     "modelname": "lstm",
-#     "d_input": 15,
+#     "d_input": 13,
 #     "hidden_size": 64,
 #     "num_layers": 2,
 #     "dropout": 0.1,
@@ -42,7 +41,7 @@ dataset_config = {
 # }
 model_config = {
     "modelname": "transformer_encoder",
-    "d_input": 12,
+    "d_input": 5,
     "d_model": 32,
     "nhead": 2,
     "num_layers": 1,

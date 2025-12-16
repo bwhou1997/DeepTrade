@@ -122,7 +122,7 @@ class OHLCVDataset(Dataset):
 
         # get rid of data and transform to numpy
         df = df.drop(columns=["date"])
-        df = normalizer(df)
+        # df = normalizer(df)
         data = df.values.astype(np.float32)
 
         # ---------- label generation ----------
@@ -135,7 +135,7 @@ class OHLCVDataset(Dataset):
         returns = (future_close - close) / (close + 1e-8)
 
         labels = np.zeros(len(returns), dtype=np.int64)
-        threshold = 0.001
+        threshold = 0.01
         labels[returns > threshold] = 2  # UP
         labels[returns < -threshold] = 0  # DOWN
         labels[
@@ -161,6 +161,11 @@ class OHLCVDataset(Dataset):
 
         x = data[t : t + self.sliding_window]
         y = labels[t + self.sliding_window - 1]
+
+        # normalize x by z-score per sample (normalize within sliding window)
+        x_mean = x.mean(axis=0, keepdims=True)
+        x_std = x.std(axis=0, keepdims=True) + 1e-8
+        x = (x - x_mean) / x_std
 
         return (
             torch.from_numpy(x).float(),      # (seq_len, d)
