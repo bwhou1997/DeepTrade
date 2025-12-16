@@ -95,8 +95,26 @@ class MLStrategy(BaseStrategy):
     # Prediction
     # --------------------------------------------------
     def _predict(self, features):
-        x = torch.from_numpy(features).unsqueeze(0)
+        """
+        features: np.ndarray, shape (T, d)
+        """
 
+        # --------------------------------------------------
+        # 1. Rolling normalization (NO FUTURE INFO)
+        # --------------------------------------------------
+        eps = 1e-8
+        mean = features.mean(axis=0, keepdims=True)
+        std = features.std(axis=0, keepdims=True) + eps
+        features_norm = (features - mean) / std
+
+        # --------------------------------------------------
+        # 2. To tensor
+        # --------------------------------------------------
+        x = torch.from_numpy(features_norm).float().unsqueeze(0)  # (1, T, d)
+
+        # --------------------------------------------------
+        # 3. Model inference
+        # --------------------------------------------------
         with torch.no_grad():
             logits = self.model(x)
             probs = torch.softmax(logits, dim=1)
@@ -104,6 +122,7 @@ class MLStrategy(BaseStrategy):
             conf = probs[0, pred].item()
 
         return pred, conf
+
 
     # --------------------------------------------------
     # Order notification (CRITICAL)
@@ -139,7 +158,7 @@ class MLStrategy(BaseStrategy):
         pred, conf = self._predict(features)
 
 
-        print(f"[DEBUG] date {self.datas[0].datetime.date(0).isoformat()} Pred: {pred}, Conf: {conf:.3f}")
+        # print(f"[DEBUG] date {self.datas[0].datetime.date(0).isoformat()} Pred: {pred}, Conf: {conf:.3f}")
         # ==========================
         # ENTRY
         # ==========================

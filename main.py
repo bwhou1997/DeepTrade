@@ -12,7 +12,7 @@ dataset_config = {
     "data_path": "./data/data/msft",
     "features": ["open", "high", "low", "close", "volume"],
     "sliding_window": 60,
-    "k": 5,
+    "k": 2,
     "train_ratio": 0.8,
     "valid_ratio": 0.1,
     "indicator_bundle": {
@@ -46,7 +46,7 @@ model_config = {
     "nhead": 2,
     "num_layers": 1,
     "dim_feedforward": 64,
-    "dropout": 0.3,
+    "dropout": 0.4,
     "num_classes": 3,
     "lr": 1e-3,
 }
@@ -66,7 +66,7 @@ checkpoint_callback = ModelCheckpoint(
 
 # Trainer
 trainer = pl.Trainer(
-    max_epochs=100,
+    max_epochs=50,
     accelerator="auto",
     callbacks=[checkpoint_callback],
     log_every_n_steps=1,
