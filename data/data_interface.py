@@ -5,10 +5,10 @@ import torch
 import lightning as pl
 from typing import Optional
 from torch.utils.data import DataLoader, Dataset
-from registry import DATASET_REGISTRY
+from .registry import DATASET_REGISTRY
 
 # register dataset
-from ohlcv_dataset import OHLCVDataset, OHLCV_dataset_stage_generator
+from .ohlcv_dataset import OHLCVDataset, OHLCV_dataset_stage_generator
 
 
 class DInterface(pl.LightningDataModule):
@@ -24,7 +24,7 @@ class DInterface(pl.LightningDataModule):
         self,
         batch_size: int,
         dataset_config: dict,
-        num_workers: int = 4,
+        num_workers: int = 0,
         **kwargs
     ):
         super().__init__()

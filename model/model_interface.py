@@ -31,7 +31,6 @@ def MInterface(model_config: dict) -> pl.LightningModule:
 
 # Import all model classes to ensure they are registered
 from .lstm import LSTMClassifier
-# Add more imports here as you create new models
-# from .transformer import TransformerEncoder
+from .transformer import TransformerEncoder
 # from .cnn import SimpleCNN
 

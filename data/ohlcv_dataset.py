@@ -8,8 +8,8 @@ import pandas as pd
 import numpy as np
 from typing import List, Tuple, Optional
 from collections import defaultdict
-from registry import register_dataset, register_stage_helper
-from indicator import IndicatorBundle
+from .registry import register_dataset, register_stage_helper
+from .indicator import IndicatorBundle
 
 
 def load_csv_list(data_path) -> List[str]:

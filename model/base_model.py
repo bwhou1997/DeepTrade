@@ -57,6 +57,13 @@ class BaseModel(pl.LightningModule):
             stage: 'train', 'val', or 'test'
         """
         x, y = batch
+
+        # normalization
+        seq_len_mean = x.mean(dim=1, keepdim=True)
+        seq_len_std = x.std(dim=1, keepdim=True) + 1e-6
+        x = (x - seq_len_mean) / seq_len_std
+
+
         logits = self(x)
         loss = self.compute_loss(logits, y)
 
