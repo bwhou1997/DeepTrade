@@ -5,7 +5,7 @@ import os
 import torch
 
 from backtesting import BacktestEngine
-from backtesting.strategy import MLStrategy, SimpleMAStrategy
+from backtesting.strategy import MLStrategy, SimpleMAStrategy, EMACrossStrategy, MACDStrategy, MAcrossover
 from model import MInterface
 
 
@@ -64,14 +64,14 @@ engine = BacktestEngine(
 # ============================================================
 # 6. Add ML strategy
 # ============================================================
-engine.add_strategy(
-    MLStrategy,
-    model=model,
-    lookback=60,     # MUST match sliding_window
-    hold_period=2,   # MUST match k
-    size=25,
-    threshold=0.0,   # optional
-)
+# engine.add_strategy(
+#     MLStrategy,
+#     model=model,
+#     lookback=60,     # MUST match sliding_window
+#     hold_period=2,   # MUST match k
+#     size=25,
+#     threshold=0.0,   # optional
+# )
 
 # engine.add_strategy(
 #     SimpleMAStrategy,
@@ -79,6 +79,16 @@ engine.add_strategy(
 #     slow_period=30,
 #     size=20,
 # )
+
+# engine.add_strategy(
+#     MACDStrategy,
+#     size=20,
+# )
+engine.add_strategy(
+    MAcrossover,
+)
+
+
 
 # ============================================================
 # 7. Run backtest

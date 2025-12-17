@@ -50,3 +50,11 @@ python downloader.py         # download MSFT by default
 python main.py               # train a transformer model (rename the best training version as best_msft)
 python example_backtest.py   # run backtest on trained model
 ```
+
+### Todo
+1. add more indicator strategies
+2. try to train a better model (foundation model) <-- (urgent)
+3. develope benchmark system (both dataset, model, and strategy)
+
+### Interesting Papers:
+1. FinCast: A Foundation Model for Financial Time-Series Forecasting https://arxiv.org/pdf/2508.19609 **(Foundation model)**
