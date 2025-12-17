@@ -12,7 +12,7 @@ dataset_config = {
     "data_path": "./data/data/msft",
     "features": ["open", "high", "low", "close", "volume"],
     "sliding_window": 60,
-    "k": 2,
+    "k": 1,
     "train_ratio": 0.8,
     "valid_ratio": 0.1,
     "indicator_bundle": {

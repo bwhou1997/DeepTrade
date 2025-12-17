@@ -12,22 +12,22 @@ from .registry import register_dataset, register_stage_helper
 from .indicator import IndicatorBundle
 
 
-def normalizer(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Z-score normalization for all features.
-    Assumes df is time-sorted.
-    """
+# def normalizer(df: pd.DataFrame) -> pd.DataFrame:
+#     """
+#     Z-score normalization for all features.
+#     Assumes df is time-sorted.
+#     """
 
-    eps = 1e-8
-    norm_df = pd.DataFrame(index=df.index)
+#     eps = 1e-8
+#     norm_df = pd.DataFrame(index=df.index)
 
-    for col in df.columns:
-        x = df[col].values.astype(np.float32)
-        mean = x.mean()
-        std = x.std()
-        norm_df[col] = (x - mean) / (std + eps)
+#     for col in df.columns:
+#         x = df[col].values.astype(np.float32)
+#         mean = x.mean()
+#         std = x.std()
+#         norm_df[col] = (x - mean) / (std + eps)
 
-    return norm_df
+#     return norm_df
 
 def load_csv_list(data_path) -> List[str]:
     """
@@ -135,7 +135,7 @@ class OHLCVDataset(Dataset):
         returns = (future_close - close) / (close + 1e-8)
 
         labels = np.zeros(len(returns), dtype=np.int64)
-        threshold = 0.01
+        threshold = 0.005
         labels[returns > threshold] = 2  # UP
         labels[returns < -threshold] = 0  # DOWN
         labels[

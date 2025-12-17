@@ -134,15 +134,35 @@ class MLStrategy(BaseStrategy):
         if order.status == order.Completed:
             if order.isbuy():
                 self.bar_entered = len(self)
-                self.log(f"BUY EXECUTED @ {order.executed.price:.2f}")
+                self.log(
+                    f"BUY EXECUTED @ {order.executed.price:.2f}, "
+                    f"size={order.executed.size}"
+                )
             else:
-                self.log(f"SELL EXECUTED @ {order.executed.price:.2f}")
                 self.bar_entered = None
+                self.log(
+                    f"SELL EXECUTED @ {order.executed.price:.2f}, "
+                    f"size={order.executed.size}"
+                )
 
         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
-            self.log("Order Failed")
+            status_map = {
+                order.Canceled: "CANCELED",
+                order.Margin: "MARGIN (Insufficient Cash)",
+                order.Rejected: "REJECTED",
+            }
+
+            self.log(
+                f"ORDER FAILED | "
+                f"type={order.ordtypename()} | "
+                f"status={status_map[order.status]} | "
+                f"size={order.created.size} | "
+                f"price={order.created.price} | "
+                f"cash={self.broker.getcash():.2f}"
+            )
 
         self.order = None
+
 
     # --------------------------------------------------
     # Trading logic
@@ -157,39 +177,73 @@ class MLStrategy(BaseStrategy):
 
         pred, conf = self._predict(features)
 
+        self.log(
+            f"[DEBUG] Pred={pred}, Conf={conf:.3f}, "
+            f"Pos={self.position.size}, Cash={self.broker.getcash():.2f}"
+        )
 
-        print(f"[DEBUG] date {self.datas[0].datetime.date(0).isoformat()} Pred: {pred}, Conf: {conf:.3f}")
-        # ==========================
-        # ENTRY
-        # ==========================
+        price = self.data.close[0]
+
+        # ----------------------------------
+        # 2. ENTRY: ALL-IN
+        # ----------------------------------
         if not self.position:
-            # allow re-entry immediately after exit
             if pred == 2 and conf >= self.p.threshold:
-                self.order = self.buy(size=self.p.size)
-                self.log(
-                    f"BUY CREATE @ {self.data.close[0]:.2f}, conf={conf:.3f}"
-                )
+
+                if self.p.size is not None:
+                    size = self.p.size
+                else:
+                    cash = self.broker.getcash()
+                    comminfo = self.broker.getcommissioninfo(self.data)
+                    commission = comminfo.p.commission
+                    size = int(cash / (price * (1.0 + commission)))
+
+                if size > 0:
+                    self.order = self.buy(size=size)
+                    self.bar_entered = len(self)
             return
+        # if not self.position:
+        #     # allow re-entry immediately after exit
+        #     if pred == 2 and conf >= self.p.threshold:
+        #         self.order = self.buy(size=self.p.size)
+        #         self.log(
+        #             f"BUY CREATE @ {self.data.close[0]:.2f}, conf={conf:.3f}"
+        #         )
+        #     return
 
         # ==========================
         # EXIT
         # ==========================
         bars_held = len(self) - self.bar_entered
 
-        # 1) time-based exit (core k-step logic)
         if bars_held >= self.p.hold_period:
-            self.order = self.sell(size=self.p.size)
+            self.order = self.close()
             self.log(
-                f"SELL (time exit) @ {self.data.close[0]:.2f}, held={bars_held}"
+                f"SELL ALL (time exit) @ {price:.2f}, "
+                f"held={bars_held}"
             )
             return
 
-        # 2) strong reverse only
         if pred == 0 and conf >= self.p.reverse_threshold:
-            self.order = self.sell(size=self.p.size)
+            self.order = self.close()
             self.log(
-                f"SELL (reverse) @ {self.data.close[0]:.2f}, conf={conf:.3f}"
+                f"SELL ALL (reverse) @ {price:.2f}, "
+                f"conf={conf:.3f}"
             )
+        # # 1) time-based exit (core k-step logic)
+        # if bars_held >= self.p.hold_period:
+        #     self.order = self.sell(size=self.p.size)
+        #     self.log(
+        #         f"SELL (time exit) @ {self.data.close[0]:.2f}, held={bars_held}"
+        #     )
+        #     return
+
+        # # 2) strong reverse only
+        # if pred == 0 and conf >= self.p.reverse_threshold:
+        #     self.order = self.sell(size=self.p.size)
+        #     self.log(
+        #         f"SELL (reverse) @ {self.data.close[0]:.2f}, conf={conf:.3f}"
+        #     )
 
 
 # ======================================================================
